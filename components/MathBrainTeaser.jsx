@@ -1,29 +1,39 @@
-// File: components/MathBrainTeaser/index.jsx
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Trophy,
-  Award,
-  Clock,
+  Trophy, Clock, Calculator, Check, X,
+  Users, Book, RefreshCw, ArrowRight,
+  ChevronRight, Menu, ArrowLeftCircle, 
   Lightbulb,
-  Users,
-  Book,
-  Star,
-  Lock,
-  UnlockIcon,
-  ArrowRight,
-  RefreshCw,
-  Calculator,
-  Check,
-  X
+  Award
 } from 'lucide-react';
-import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
+import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
-import { Tooltip, TooltipProvider } from '@/components/ui/tooltip';
-
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 
 
 // Constants
@@ -169,6 +179,8 @@ const TUTORIAL_STEPS = [
 
 const MathBrainTeaser = () => {
   // Game State
+
+  const bypassLocks = true; 
   const [gameState, setGameState] = useState('SELECT_LEVEL'); // SELECT_LEVEL, PLAYING, SUCCESS, GAME_OVER
   const [difficulty, setDifficulty] = useState(null);
   const [numbers, setNumbers] = useState([]);
@@ -218,7 +230,6 @@ const MathBrainTeaser = () => {
   }, [timeLeft, gameState]);
 
   // Game Logic
-  const generateRandomNumber = (max) => Math.floor(Math.random() * max) + 1;
 
 
   // Modified number generation function
@@ -615,135 +626,330 @@ const MathBrainTeaser = () => {
     </Card>
   );
 
+  const GameHeader = () => (
+    <div className="flex items-center justify-between w-full mb-6">
+      <div className="flex items-center gap-2">
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon" className="md:hidden">
+              <Menu className="h-6 w-6" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left">
+            <SheetHeader>
+              <SheetTitle>Progress & Stats</SheetTitle>
+            </SheetHeader>
+            <div className="mt-4 space-y-4">
+              <ProgressCard />
+              <AchievementsCard />
+            </div>
+          </SheetContent>
+        </Sheet>
+        <h1 className="text-2xl font-semibold">Math Brain Teaser</h1>
+      </div>
+      {gameState !== 'SELECT_LEVEL' && (
+        <div className="flex items-center gap-4">
+          <Badge variant="secondary" className="flex gap-2 p-2">
+            <Clock className="w-4 h-4" />
+            <span className="font-mono">{formatTime(timeLeft)}</span>
+          </Badge>
+          <Badge variant="secondary" className="flex gap-2 p-2">
+            <Trophy className="w-4 h-4" />
+            <span>{score}</span>
+          </Badge>
+        </div>
+      )}
+    </div>
+  );
+
+  const DifficultySelector = () => (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {Object.entries(DIFFICULTY_LEVELS).map(([level, config]) => {
+          const isLocked = bypassLocks ? false : stats.level < config.required.level;
+    
+          return (
+            <TooltipProvider key={level}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div>
+                    <Button
+                      className="w-full relative group"
+                      variant={isLocked ? "secondary" : "default"}
+                      disabled={isLocked}
+                      onClick={() => startGame(level)}
+                    >
+                      <div className="flex items-center justify-between w-full">
+                        <span>{config.name}</span>
+                        <ChevronRight className="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" />
+                      </div>
+                    </Button>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="right" className="max-w-xs">
+                  <p>{config.explanation}</p>
+                  {isLocked && (
+                    <p className="text-red-500 mt-1">
+                      Unlocks at level {config.required.level}
+                    </p>
+                  )}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          );
+        })}
+      </div>
+
+      <div className="flex justify-center gap-4">
+        <Button
+          variant="outline"
+          onClick={() => setMultiplayerMode(!multiplayerMode)}
+          className="w-40"
+        >
+          <Users className="w-4 h-4 mr-2" />
+          {multiplayerMode ? 'Single Player' : 'Multiplayer'}
+        </Button>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="outline" className="w-40">
+              <Book className="w-4 h-4 mr-2" />
+              Tutorial
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>How to Play</DialogTitle>
+              <DialogDescription>
+                Learn the basics of Math Brain Teaser
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 mt-4">
+              {TUTORIAL_STEPS.map((step, index) => (
+                <div key={index} className="space-y-2">
+                  <h3 className="font-semibold">{step.title}</h3>
+                  <p className="text-sm text-gray-600">{step.content}</p>
+                  {index < TUTORIAL_STEPS.length - 1 && <Separator />}
+                </div>
+              ))}
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+    </div>
+  );
+
+
+ 
   // const GameBoard = () => (
   //   <div className="space-y-6">
-  //     <div className="text-center space-y-2">
-  //       <div className="text-lg">
-  //         Target Number: <span className="font-bold">{targetNumber}</span>
-  //       </div>
-  //       <div className="text-lg">
-  //         Available Numbers:{' '}
-  //         <div className="flex justify-center gap-2 mt-2">
+  //     <div className="text-center space-y-4">
+  //       <motion.div
+  //         initial={{ scale: 0.9 }}
+  //         animate={{ scale: 1 }}
+  //         className="bg-blue-50 p-6 rounded-xl shadow-sm"
+  //       >
+  //         <span className="text-gray-600 block mb-2">Target</span>
+  //         <span className="text-4xl font-bold text-blue-600">{targetNumber}</span>
+  //       </motion.div>
+
+  //       <div className="mt-8">
+  //         <span className="text-gray-600 block mb-4">Available Numbers</span>
+  //         <div className="flex flex-wrap justify-center gap-3">
   //           {numbers.map((num, index) => (
-  //             <motion.div
+  //             <Button
   //               key={index}
-  //               initial={{ scale: 0 }}
-  //               animate={{ scale: 1 }}
-  //               className="w-12 h-12 flex items-center justify-center bg-blue-100 rounded-lg font-bold"
+  //               variant="outline"
+  //               className="w-16 h-16 text-xl font-bold hover:bg-blue-50 transition-colors"
+  //               onClick={() => {
+  //                 const cursorPos = document.getElementById('solution-input').selectionStart;
+  //                 const newValue = userInput.slice(0, cursorPos) + num + userInput.slice(cursorPos);
+  //                 setUserInput(newValue);
+  //                 document.getElementById('solution-input').focus();
+  //               }}
   //             >
   //               {num}
-  //             </motion.div>
+  //             </Button>
   //           ))}
   //         </div>
   //       </div>
   //     </div>
 
-  //     <div className="space-y-2">
-  //       <div className="text-sm">Available Operations:</div>
+  //     <div className="space-y-4">
   //       <div className="flex flex-wrap gap-2 justify-center">
   //         {DIFFICULTY_LEVELS[difficulty].operations.map((op) => (
-  //           <TooltipProvider key={op}>
-  //           <Tooltip key={op} content={getOperationExplanation(op)}>
-  //             <Button
-  //               variant="outline"
-  //               className="px-4"
-  //               onClick={() => setUserInput(userInput + op)}
-  //             >
-  //               {op}
-  //             </Button>
-  //           </Tooltip>
-  //           </TooltipProvider>
+  //           <Button
+  //             key={op}
+  //             variant="secondary"
+  //             className="w-12 h-12 text-lg font-mono"
+  //             onClick={() => {
+  //               const cursorPos = document.getElementById('solution-input').selectionStart;
+  //               const newValue = userInput.slice(0, cursorPos) + ` ${op} ` + userInput.slice(cursorPos);
+  //               setUserInput(newValue);
+  //               document.getElementById('solution-input').focus();
+  //             }}
+  //           >
+  //             {op}
+  //           </Button>
   //         ))}
   //       </div>
-  //     </div>
 
-  //     <div className="space-y-2">
-  //       <input
-  //         type="text"
-  //         value={userInput}
-  //         onChange={(e) => setUserInput(e.target.value)}
-  //         className="w-full p-2 border rounded"
-  //         placeholder="Enter your solution..."
-  //       />
-  //       <div className="flex gap-2">
+  //       <div className="relative">
+  //         <Calculator className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+  //         <input
+  //           id="solution-input"
+  //           type="text"
+  //           value={userInput}
+  //           onChange={(e) => setUserInput(e.target.value)}
+  //           className="w-full p-4 pl-12 text-lg font-mono border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+  //           placeholder="Build your solution..."
+  //           onKeyDown={(e) => {
+  //             if (e.key === 'Enter') {
+  //               checkSolution();
+  //             }
+  //           }}
+  //         />
+  //       </div>
+
+  //       <div className="flex gap-3">
   //         <Button
-  //           className="w-full"
+  //           className="flex-1 h-12"
   //           onClick={checkSolution}
   //         >
-  //           <Check className="w-4 h-4 mr-2" />
+  //           <Check className="w-5 h-5 mr-2" />
   //           Check Solution
   //         </Button>
   //         <Button
   //           variant="outline"
-  //           onClick={() => setUserInput('')}
-  //           className="w-32"
+  //           onClick={() => {
+  //             setUserInput('');
+  //             document.getElementById('solution-input').focus();
+  //           }}
+  //           className="w-32 h-12"
   //         >
-  //           <X className="w-4 h-4 mr-2" />
+  //           <X className="w-5 h-5 mr-2" />
   //           Clear
   //         </Button>
   //       </div>
   //     </div>
 
   //     {message && (
-  //       <Alert>
+  //       <Alert variant={gameState === 'SUCCESS' ? 'success' : 'error'}>
   //         <AlertDescription>{message}</AlertDescription>
   //       </Alert>
+  //     )}
+
+  //     {hintsRemaining > 0 && (
+  //       <Button
+  //         variant="ghost"
+  //         className="w-full mt-4"
+  //         onClick={() => {
+  //           setHintsRemaining(prev => prev - 1);
+  //           setHintsUsed(prev => prev + 1);
+  //           setMessage(`Hint: Try using ${hint}`);
+  //         }}
+  //       >
+  //         Use Hint ({hintsRemaining} remaining)
+  //       </Button>
   //     )}
   //   </div>
   // );
 
-  // Main render
 
   const GameBoard = () => (
     <div className="space-y-6">
-      <div className="text-center space-y-4">
-        <motion.div
-          initial={{ scale: 0.9 }}
-          animate={{ scale: 1 }}
-          className="bg-blue-50 p-6 rounded-xl shadow-sm"
-        >
-          <span className="text-gray-600 block mb-2">Target</span>
-          <span className="text-4xl font-bold text-blue-600">{targetNumber}</span>
-        </motion.div>
-
-        <div className="mt-8">
-          <span className="text-gray-600 block mb-4">Available Numbers</span>
-          <div className="flex flex-wrap justify-center gap-3">
-            {numbers.map((num, index) => (
-              <Button
-                key={index}
-                variant="outline"
-                className="w-16 h-16 text-xl font-bold hover:bg-blue-50 transition-colors"
-                onClick={() => {
-                  const cursorPos = document.getElementById('solution-input').selectionStart;
-                  const newValue = userInput.slice(0, cursorPos) + num + userInput.slice(cursorPos);
-                  setUserInput(newValue);
-                  document.getElementById('solution-input').focus();
-                }}
-              >
-                {num}
-              </Button>
-            ))}
+      <div className="bg-gradient-to-b from-gray-50 to-gray-100 p-6 rounded-xl shadow-sm">
+        <div className="text-center space-y-6">
+          <div>
+            <span className="text-gray-600 text-sm">Target Number</span>
+            <div className="text-4xl font-bold text-gray-900 mt-2">
+              {targetNumber}
+            </div>
+          </div>
+          
+          <div>
+            <span className="text-gray-600 text-sm">Available Numbers</span>
+            <div className="flex flex-wrap justify-center gap-3 mt-2">
+              {numbers.map((num, index) => (
+                <Button
+                  key={index}
+                  variant="outline"
+                  className="w-12 h-12 text-xl font-semibold hover:bg-gray-100"
+                  onClick={() => {
+                    const cursorPos = document.getElementById('solution-input').selectionStart;
+                    const newValue = userInput.slice(0, cursorPos) + num + userInput.slice(cursorPos);
+                    setUserInput(newValue);
+                  }}
+                >
+                  {num}
+                </Button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
+      {/* New Hints Section */}
+    <Card className="bg-gray-50 border-dashed">
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <Lightbulb className="w-4 h-4 text-yellow-500" />
+            <h3 className="font-semibold text-sm">Hints</h3>
+          </div>
+          <Badge variant="secondary">
+            {hintsRemaining} remaining
+          </Badge>
+        </div>
+        
+        {message && message.startsWith('Hint:') ? (
+          <Alert variant="default" className="bg-yellow-50 mt-2">
+            <AlertDescription>{message}</AlertDescription>
+          </Alert>
+        ) : (
+          hintsRemaining > 0 ? (
+            <Button
+              variant="ghost"
+              className="w-full text-sm text-gray-600 hover:text-gray-900"
+              onClick={() => {
+                setHintsRemaining(prev => prev - 1);
+                setHintsUsed(prev => prev + 1);
+                setMessage(`Hint: Try using ${hint}`);
+              }}
+            >
+              <Lightbulb className="w-4 h-4 mr-2" />
+              Use a hint
+            </Button>
+          ) : (
+            <p className="text-sm text-gray-500 text-center py-2">No hints remaining</p>
+          )
+        )}
+      </CardContent>
+    </Card>
+
+
       <div className="space-y-4">
         <div className="flex flex-wrap gap-2 justify-center">
           {DIFFICULTY_LEVELS[difficulty].operations.map((op) => (
-            <Button
-              key={op}
-              variant="secondary"
-              className="w-12 h-12 text-lg font-mono"
-              onClick={() => {
-                const cursorPos = document.getElementById('solution-input').selectionStart;
-                const newValue = userInput.slice(0, cursorPos) + ` ${op} ` + userInput.slice(cursorPos);
-                setUserInput(newValue);
-                document.getElementById('solution-input').focus();
-              }}
-            >
-              {op}
-            </Button>
+            <TooltipProvider key={op}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="secondary"
+                    className="w-10 h-10 text-lg font-mono"
+                    onClick={() => {
+                      const cursorPos = document.getElementById('solution-input').selectionStart;
+                      const newValue = userInput.slice(0, cursorPos) + ` ${op} ` + userInput.slice(cursorPos);
+                      setUserInput(newValue);
+                    }}
+                  >
+                    {op}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {getOperationExplanation(op)}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           ))}
         </div>
 
@@ -754,19 +960,15 @@ const MathBrainTeaser = () => {
             type="text"
             value={userInput}
             onChange={(e) => setUserInput(e.target.value)}
-            className="w-full p-4 pl-12 text-lg font-mono border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full p-4 pl-12 text-lg font-mono border rounded-lg focus:ring-2 focus:ring-gray-200"
             placeholder="Build your solution..."
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                checkSolution();
-              }
-            }}
+            onKeyDown={(e) => e.key === 'Enter' && checkSolution()}
           />
         </div>
 
         <div className="flex gap-3">
           <Button
-            className="flex-1 h-12"
+            className="flex-1"
             onClick={checkSolution}
           >
             <Check className="w-5 h-5 mr-2" />
@@ -774,11 +976,7 @@ const MathBrainTeaser = () => {
           </Button>
           <Button
             variant="outline"
-            onClick={() => {
-              setUserInput('');
-              document.getElementById('solution-input').focus();
-            }}
-            className="w-32 h-12"
+            onClick={() => setUserInput('')}
           >
             <X className="w-5 h-5 mr-2" />
             Clear
@@ -786,168 +984,105 @@ const MathBrainTeaser = () => {
         </div>
       </div>
 
-      {message && (
+{/* does not start with Hint */}
+      {message && !message.startsWith('Hint:') && (
         <Alert variant={gameState === 'SUCCESS' ? 'success' : 'error'}>
           <AlertDescription>{message}</AlertDescription>
         </Alert>
       )}
-
-      {hintsRemaining > 0 && (
-        <Button
-          variant="ghost"
-          className="w-full mt-4"
-          onClick={() => {
-            setHintsRemaining(prev => prev - 1);
-            setHintsUsed(prev => prev + 1);
-            setMessage(`Hint: Try using ${hint}`);
-          }}
-        >
-          Use Hint ({hintsRemaining} remaining)
-        </Button>
-      )}
     </div>
+  );
+
+
+
+  const ProgressCard = () => (
+    <Card>
+      <CardContent className="p-4">
+        <h3 className="font-semibold mb-2">Progress</h3>
+        <div className="space-y-2">
+          <div className="flex justify-between text-sm">
+            <span>Level {stats.level}</span>
+            <span>{stats.totalScore} XP</span>
+          </div>
+          <Progress
+            value={(stats.totalScore % 1000) / 10}
+            className="h-2"
+          />
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+
+  const AchievementsCard = () => (
+    <Card>
+      <CardContent className="p-4">
+        <h3 className="font-semibold mb-2">Achievements</h3>
+        <div className="space-y-2">
+          {Object.entries(ACHIEVEMENTS).map(([key, achievement]) => (
+            <div
+              key={key}
+              className={`flex items-center gap-2 ${
+                stats.achievements.includes(key)
+                  ? 'text-gray-900'
+                  : 'text-gray-400'
+              }`}
+            >
+              <span>{achievement.icon}</span>
+              <span className="text-sm">{achievement.name}</span>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 
   return (
     <div className="relative max-w-4xl mx-auto p-4">
-      <Card className="w-full">
-        <CardHeader className="border-b">
-          <CardTitle className="flex items-center justify-between">
-            <span className="text-2xl">Math Brain Teaser</span>
-            {gameState !== 'SELECT_LEVEL' && (
-              <div className="flex items-center gap-4 text-lg">
-                <div className="flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-blue-500" />
-                  <span className="font-mono">{formatTime(timeLeft)}</span>
+      <div className="flex flex-col md:flex-row gap-6">
+        <div className="flex-1">
+          <Card className="w-full">
+            <CardContent className="p-6">
+              <GameHeader />
+              {gameState === 'SELECT_LEVEL' && <DifficultySelector />}
+              {gameState === 'PLAYING' && <GameBoard />}
+              {(gameState === 'SUCCESS' || gameState === 'GAME_OVER') && (
+                <div className="text-center space-y-4">
+                  <h3 className={`text-xl font-bold ${
+                    gameState === 'SUCCESS' ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    {gameState === 'SUCCESS' ? 'Congratulations!' : 'Game Over'}
+                  </h3>
+                  <div className="space-y-2">
+                    <Button
+                      onClick={() => startGame(difficulty)}
+                      className="w-48"
+                    >
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      Play Again
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => setGameState('SELECT_LEVEL')}
+                      className="w-48"
+                    >
+                      <ArrowLeftCircle className="w-4 h-4 mr-2" />
+                      Change Level
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Trophy className="w-5 h-5 text-yellow-500" />
-                  <span>{score}</span>
-                </div>
-              </div>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-6">
-          {gameState === 'SELECT_LEVEL' && (
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-center">Select Difficulty</h3>
-              <div className="grid grid-cols-2 gap-4">
-                {Object.entries(DIFFICULTY_LEVELS).map(([level, config]) => {
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
-                  return (
-                    <TooltipProvider key={level}>
-                      <Tooltip
-                        key={level}
-                      >
-                        <div>
-                          <Button
-                            className="w-full relative"
-                            onClick={() => startGame(level)}
-                          >
-                            {config.name}
-                          </Button>
-                        </div>
-                      </Tooltip>
-                    </TooltipProvider>
-                  );
-                })}
-              </div>
-              <div className="flex justify-center gap-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setMultiplayerMode(!multiplayerMode)}
-                >
-                  <Users className="w-4 h-4 mr-2" />
-                  {multiplayerMode ? 'Single Player' : 'Multiplayer'}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setShowTutorial(true)}
-                >
-                  <Book className="w-4 h-4 mr-2" />
-                  Tutorial
-                </Button>
-              </div>
-            </div>
-          )}
+        <div className="hidden md:block w-64 space-y-4">
+          <ProgressCard />
+          <AchievementsCard />
+        </div>
+      </div>
 
-          {gameState === 'PLAYING' && <GameBoard />}
-
-          {(gameState === 'SUCCESS' || gameState === 'GAME_OVER') && (
-            <div className="space-y-4 text-center">
-              <h3 className={`text-xl font-bold ${gameState === 'SUCCESS' ? 'text-green-600' : 'text-red-600'
-                }`}>
-                {gameState === 'SUCCESS' ? 'Congratulations!' : 'Game Over'}
-              </h3>
-              <p>{gameState === 'SUCCESS' ? 'You solved the puzzle!' : 'Better luck next time!'}</p>
-              <div className="space-y-2">
-                <Button
-                  onClick={() => startGame(difficulty)}
-                  className="w-48"
-                >
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Play Again
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setGameState('SELECT_LEVEL')}
-                  className="w-48"
-                >
-                  Change Level
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {multiplayerMode && multiplayerGame && <MultiplayerStatus />}
-        </CardContent>
-      </Card>
-
-      {/* Progress sidebar */}
-      <motion.div
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        className="fixed right-4 top-4 w-64 space-y-4"
-      >
-        <Card>
-          <CardContent className="p-4">
-            <h3 className="font-bold mb-2">Progress</h3>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span>Level {stats.level}</span>
-                <span>{stats.totalScore} XP</span>
-              </div>
-              <Progress
-                value={(stats.totalScore % 1000) / 10}
-                className="h-2"
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <h3 className="font-bold mb-2">Achievements</h3>
-            <div className="space-y-2">
-              {Object.entries(ACHIEVEMENTS).map(([key, achievement]) => (
-                <div
-                  key={key}
-                  className={`flex items-center gap-2 ${stats.achievements.includes(key) ? 'text-green-600' : 'text-gray-400'
-                    }`}
-                >
-                  <span>{achievement.icon}</span>
-                  <span>{achievement.name}</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      {/* Overlays */}
       <AnimatePresence>
-        {showTutorial && <Tutorial />}
         {showAchievement && <AchievementPopup achievement={showAchievement} />}
         {levelUpAnimation && <LevelUpAnimation />}
       </AnimatePresence>
