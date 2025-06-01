@@ -3,13 +3,14 @@ import { solveMathGame } from "@/lib/aiMathSolver";
 import { generateAIPuzzle } from "@/lib/aiMathGame";
 
 const DIFFICULTY_CONFIGS = {
+  // change the level name to scientific
   BEGINNER: {
     numberCount: 5,
     maxNumber: 9,
     timeLimit: 120,
     baseScore: 100,
     description: "Combine numbers creatively",
-    targetRange: { min: 10, max: 99 }
+    targetRange: { min: 10, max: 199 }
   },
   INTERMEDIATE: {
     numberCount: 6,
@@ -17,7 +18,7 @@ const DIFFICULTY_CONFIGS = {
     timeLimit: 180,
     baseScore: 200,
     description: "More numbers, more possibilities",
-    targetRange: { min: 100, max: 999 }
+    targetRange: { min: 100, max: 299 }
   },
   ADVANCED: {
     numberCount: 4,
@@ -25,7 +26,15 @@ const DIFFICULTY_CONFIGS = {
     timeLimit: 240,
     baseScore: 300,
     description: "Complex combinations",
-    targetRange: { min: 100, max: 9999 }
+    targetRange: { min: 100, max: 399 }
+  },
+  SUPER_ADVANCED: {
+    numberCount: 4,
+    maxNumber: 9,
+    timeLimit: 240,
+    baseScore: 300,
+    description: "Complex combinations",
+    targetRange: { min: 100, max: 499 }
   }
 };
 

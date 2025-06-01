@@ -1,0 +1,130 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+  background: linear-gradient(135deg, #f0f7ff, #e6f3ff);
+  font-family: 'Arial', sans-serif;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #2c5282;
+  margin-bottom: 30px;
+  letter-spacing: 1px;
+}
+
+.grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.row {
+  display: flex;
+  gap: 6px;
+}
+
+.cell {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #2c5282;
+  background-color: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  transition: transform 0.3s, opacity 0.3s, background-color 0.3s;
+}
+
+.green {
+  background-color: #48bb78;
+  color: white;
+  border-color: #48bb78;
+}
+
+.yellow {
+  background-color: #ecc94b;
+  color: white;
+  border-color: #ecc94b;
+}
+
+.gray {
+  background-color: #a0aec0;
+  color: white;
+  border-color: #a0aec0;
+}
+
+.flip {
+  transform: rotateX(360deg);
+  opacity: 0;
+  animation: flip 0.6s ease forwards;
+}
+
+@keyframes flip {
+  0% {
+    transform: rotateX(0deg);
+    opacity: 0;
+  }
+  50% {
+    transform: rotateX(90deg);
+    opacity: 0.5;
+  }
+  100% {
+    transform: rotateX(360deg);
+    opacity: 1;
+  }
+}
+
+.keyboard {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  max-width: 300px;
+}
+
+.key {
+  padding: 12px;
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: #2c5282;
+  background-color: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.key:hover:not(:disabled) {
+  background-color: #edf2f7;
+  transform: scale(1.05);
+}
+
+.key:disabled {
+  background-color: #e2e8f0;
+  cursor: not-allowed;
+}
+
+.submit {
+  grid-column: span 2;
+  background-color: #a0aec0;
+  color: white;
+  border-color: #a0aec0;
+}
+
+.submit:hover:not(:disabled) {
+  background-color: #718096;
+}
+
+.message {
+  margin-top: 20px;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #2c5282;
+}
